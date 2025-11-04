@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Parents</h4>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_parent') }}">+ Create Parent</a>
+</div>
+
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Students Linked</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in parents %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.full_name }}</td>
+        <td>{{ p.user.email if p.user else '-' }}</td>
+        <td>{{ p.phone or '-' }}</td>
+        <td>
+          {% set linked = p.user_id and students|selectattr("parent_user_id", "equalto", p.user_id)|list %}
+          {{ linked|length }}
+        </td>
+        <td>
+          <a href="{{ url_for('admin_edit_parent', parent_id=p.id) }}" class="btn btn-sm btn-outline-primary">View / Assign Students</a>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="text-center text-muted">No parents found</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

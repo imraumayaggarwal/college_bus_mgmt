@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Driver Attendance</h4>
+
+<div class="card p-3 mb-3">
+  <div class="row">
+    <div class="col-md-6">
+      <p><strong>Bus:</strong> {{ bus.bus_number if bus else '—' }}</p>
+      <p><strong>Driver:</strong> {{ driver.full_name if driver else current_user.email }}</p>
+    </div>
+    <div class="col-md-6 text-end">
+      <p><strong>Quick slot defaults (placeholders):</strong></p>
+      <div>Pickup 1: {{ slots_display.pickup1 }}</div>
+      <div>Pickup 2: {{ slots_display.pickup2 }}</div>
+      <div>Drop 1: {{ slots_display.drop1 }}</div>
+      <div>Drop 2: {{ slots_display.drop2 }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <form method="post">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <label class="form-label"><strong>Select slot</strong></label>
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="slot" id="slot_pickup1" value="pickup1" required>
+            <label class="form-check-label" for="slot_pickup1">Pickup 1</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="slot" id="slot_pickup2" value="pickup2">
+            <label class="form-check-label" for="slot_pickup2">Pickup 2</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="slot" id="slot_drop1" value="drop1">
+            <label class="form-check-label" for="slot_drop1">Drop 1</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="slot" id="slot_drop2" value="drop2">
+            <label class="form-check-label" for="slot_drop2">Drop 2</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label"><strong>Pick time (HH:MM)</strong></label>
+        <input type="time" name="time" class="form-control" required value="{{ slots_display.pickup1 }}">
+        <div class="form-text">Set the actual time for this slot (24-hour).</div>
+      </div>
+
+      <div class="col-md-3 text-end">
+        <label class="form-label">&nbsp;</label>
+        <div>
+          <button type="submit" class="btn btn-primary">Save attendance</button>
+          <a class="btn btn-secondary ms-2" href="{{ url_for('driver_dashboard') }}">Back</a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-3">
+
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr><th>Present</th><th>Student</th><th>Roll</th><th>Assigned Route</th></tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="present" value="{{ s.id }}" id="p{{ s.id }}">
+                </div>
+              </td>
+              <td><label for="p{{ s.id }}">{{ s.full_name }}</label></td>
+              <td>{{ s.roll_number or '-' }}</td>
+              <td>{{ s.assigned_route.name if s.assigned_route else '-' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-muted">No students assigned to this bus.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+</div>
+{% endblock %}

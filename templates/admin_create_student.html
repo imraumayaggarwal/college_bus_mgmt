@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Create Student</h4>
+<form method="post">
+  <div class="mb-3"><label class="form-label">Full name</label><input name="full_name" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Email</label><input name="email" type="email" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Phone</label><input name="phone" class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Roll number</label><input name="roll_number" class="form-control"/></div>
+
+  <div class="mb-3"><label class="form-label">Assign Parent (optional)</label>
+    <select name="parent_user_id" class="form-select">
+      <option value="">-- none --</option>
+      {% for p in parents %}
+        <option value="{{ p.user_id }}">{{ p.full_name }} ({{ p.user.email if p.user else '' }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3"><label class="form-label">Assign Bus (optional)</label>
+    <select name="assigned_bus_id" class="form-select">
+      <option value="">-- none --</option>
+      {% for b in buses %}
+        <option value="{{ b.id }}">{{ b.bus_number }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3"><label class="form-label">Assign Route (optional)</label>
+    <select name="assigned_route_id" class="form-select">
+      <option value="">-- none --</option>
+      {% for r in routes %}
+        <option value="{{ r.id }}">{{ r.name }} ({{ r.route_code }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3"><label class="form-label">Password (optional)</label><input name="password" class="form-control"/></div>
+  <div><button class="btn btn-success">Create</button> <a href="{{ url_for('admin_students') }}" class="btn btn-secondary">Cancel</a></div>
+</form>
+{% endblock %}

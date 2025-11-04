@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Edit Student — {{ student.full_name }}</h4>
+
+<form method="post" class="card p-3">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Full name</label>
+      <input name="full_name" class="form-control" value="{{ student.full_name }}" required />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Roll number</label>
+      <input name="roll_number" class="form-control" value="{{ student.roll_number or '' }}" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Phone</label>
+      <input name="phone" class="form-control" value="{{ student.phone or '' }}" />
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Assign Parent</label>
+      <select name="parent_user_id" class="form-select">
+        <option value="">— No parent —</option>
+        {% for p in parents %}
+          <option value="{{ p.user_id }}" {% if student.parent_user_id == p.user_id %}selected{% endif %}>
+            {{ p.full_name }} ({{ p.user.email if p.user else '—' }})
+          </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">Select a parent to link to this student.</div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Assign Bus</label>
+      <select name="assigned_bus_id" class="form-select">
+        <option value="">— No bus —</option>
+        {% for b in buses %}
+          <option value="{{ b.id }}" {% if student.assigned_bus_id == b.id %}selected{% endif %}>
+            {{ b.bus_number }} {% if b.driver %} (Driver: {{ b.driver.full_name }}){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Assign Route</label>
+      <select name="assigned_route_id" class="form-select">
+        <option value="">— No route —</option>
+        {% for r in routes %}
+          <option value="{{ r.id }}" {% if student.assigned_route_id == r.id %}selected{% endif %}>
+            {{ r.name or ('Route ' ~ r.id) }} {% if r.route_code %}({{ r.route_code }}){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12 mt-3">
+      <button class="btn btn-success">Save changes</button>
+      <a href="{{ url_for('admin_students') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

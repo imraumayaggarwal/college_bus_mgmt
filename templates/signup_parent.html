@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h4>Parent Signup</h4>
+      <form method="post">
+        <div class="mb-3"><label class="form-label">Full name</label><input name="full_name" required class="form-control"/></div>
+        <div class="mb-3"><label class="form-label">Email</label><input name="email" type="email" required class="form-control"/></div>
+        <div class="mb-3"><label class="form-label">Password</label><input name="password" type="password" required class="form-control"/></div>
+        <div class="mb-3"><label class="form-label">Phone (optional)</label><input name="phone" class="form-control"/></div>
+        <div class="d-grid"><button class="btn btn-success">Create Parent Account</button></div>
+      </form>
+      <div class="mt-3"><a href="{{ url_for('login') }}">Already have an account? Login</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

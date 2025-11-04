@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Create & Broadcast Notification</h4>
+<form method="post">
+  <div class="mb-3"><label class="form-label">Title</label><input name="title" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Message</label><textarea name="message" required class="form-control" rows="4"></textarea></div>
+  <div class="mb-3">
+    <label class="form-label">Send to:</label><br/>
+    <label class="form-check-label me-3"><input type="checkbox" name="students" class="form-check-input" checked /> Students</label>
+    <label class="form-check-label"><input type="checkbox" name="parents" class="form-check-input" checked /> Parents</label>
+  </div>
+  <div><button class="btn btn-success">Send</button> <a href="{{ url_for('admin_notifications') }}" class="btn btn-secondary">Cancel</a></div>
+</form>
+{% endblock %}

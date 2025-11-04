@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between">
+  <h4>Notifications</h4>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_notification') }}">Create & Broadcast</a>
+</div>
+<hr/>
+<table class="table table-sm">
+<thead><tr><th>#</th><th>Title</th><th>Message</th><th>Created</th></tr></thead>
+<tbody>
+{% for n in notifications %}
+  <tr><td>{{ n.id }}</td><td>{{ n.title }}</td><td>{{ n.message }}</td><td>{{ n.created_at }}</td></tr>
+{% else %}
+  <tr><td colspan="4">No notifications</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

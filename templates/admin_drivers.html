@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between">
+  <h4>Drivers</h4>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_driver') }}">Create Driver</a>
+</div>
+<hr/>
+<table class="table table-sm">
+  <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+  <tbody>
+  {% for d in drivers %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{{ d.full_name }}</td>
+      <td>{{ d.user.email if d.user else '—' }}</td>
+      <td>{{ d.phone or '' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">No drivers yet</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

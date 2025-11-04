@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Create Route</h4>
+<form method="post">
+  <div class="mb-3"><label class="form-label">Route name</label><input name="name" class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Route code / number</label><input name="route_code" class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Color (for map)</label><input name="color" class="form-control" placeholder="e.g. #ff0000 or red"/></div>
+  <div><button class="btn btn-success">Create</button> <a href="{{ url_for('admin_routes') }}" class="btn btn-secondary">Cancel</a></div>
+</form>
+{% endblock %}

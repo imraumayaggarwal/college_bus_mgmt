@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between">
+  <h4>Buses</h4>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_bus') }}">Create Bus</a>
+</div>
+<hr/>
+<table class="table table-sm">
+  <thead><tr><th>#</th><th>Bus Number</th><th>Capacity</th><th>Driver</th></tr></thead>
+  <tbody>
+  {% for b in buses %}
+    <tr>
+      <td>{{ b.id }}</td>
+      <td>{{ b.bus_number }}</td>
+      <td>{{ b.capacity }}</td>
+      <td>{{ b.driver.full_name if b.driver else '—' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">No buses yet</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

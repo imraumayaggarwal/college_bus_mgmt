@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Create Bus</h4>
+<form method="post">
+  <div class="mb-3"><label class="form-label">Bus Number</label><input name="bus_number" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Capacity</label><input name="capacity" type="number" class="form-control" value="30"/></div>
+  <div class="mb-3"><label class="form-label">Assign Driver (optional)</label>
+    <select name="driver_id" class="form-select">
+      <option value="">-- none --</option>
+      {% for d in drivers %}
+        <option value="{{ d.id }}">{{ d.full_name }} ({{ d.user.email if d.user else '' }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div><button class="btn btn-success">Create</button> <a href="{{ url_for('admin_buses') }}" class="btn btn-secondary">Cancel</a></div>
+</form>
+{% endblock %}

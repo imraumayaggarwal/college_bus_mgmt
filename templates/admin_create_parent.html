@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Create Parent</h4>
+<form method="post">
+  <div class="mb-3"><label class="form-label">Full name</label><input name="full_name" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Email</label><input name="email" type="email" required class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Phone</label><input name="phone" class="form-control"/></div>
+  <div class="mb-3"><label class="form-label">Password (optional)</label><input name="password" class="form-control"/></div>
+  <div><button class="btn btn-success">Create</button> <a href="{{ url_for('admin_parents') }}" class="btn btn-secondary">Cancel</a></div>
+</form>
+{% endblock %}

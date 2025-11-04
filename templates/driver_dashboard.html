@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h4>Driver Dashboard</h4>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">Logout</a>
+</div>
+<hr/>
+<p><strong>Driver:</strong> {{ driver.full_name }} | <strong>Bus:</strong> {{ bus.bus_number if bus else 'No bus assigned' }}</p>
+
+<div class="mb-3">
+  <a class="btn btn-primary" href="{{ url_for('driver_attendance') }}">Mark Attendance</a>
+</div>
+
+<h5>Assigned Students</h5>
+<table class="table table-sm">
+  <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Phone</th></tr></thead>
+  <tbody>
+  {% for s in students %}
+    <tr><td>{{ s.id }}</td><td>{{ s.full_name }}</td><td>{{ s.roll_number }}</td><td>{{ s.phone }}</td></tr>
+  {% else %}
+    <tr><td colspan="4">No students assigned to this bus.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

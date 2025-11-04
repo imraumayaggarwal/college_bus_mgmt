@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>🗺 Dehradun Route Mapper</h4>
+<p class="text-muted">Draw and save bus routes for your college buses.</p>
+
+<!-- Map container -->
+<div id="map" style="height: 600px; width: 100%; border-radius: 10px; border: 2px solid #ccc;"></div>
+
+<!-- Controls -->
+<div class="mt-4 card p-3 shadow-sm">
+  <form id="saveForm">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Route Name</label>
+        <input type="text" id="routeName" class="form-control" placeholder="e.g. North Campus Route" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Route Color</label>
+        <input type="color" id="routeColor" class="form-control form-control-color" value="#3388ff">
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-success mt-4">💾 Save Route</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Leaflet CSS & Draw CSS from cdnjs (no integrity attributes) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+<!-- Leaflet JS then Leaflet Draw JS (order matters) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Diagnostic: confirm Leaflet loaded
+  if (typeof L === 'undefined') {
+    console.error("Leaflet (L) is not defined. Check script loading.");
+    return;
+  } else {
+    console.log("Leaflet loaded:", L.version || "version unknown");
+  }
+
+  // Create map centered on Dehradun
+  const map = L.map("map").setView([30.3165, 78.0322], 13);
+
+  // Base OpenStreetMap layer (HTTPS)
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // Fix rendering if container size was not available immediately
+  setTimeout(() => {
+    try { map.invalidateSize(); console.log("map.invalidateSize called"); } catch(e) {}
+  }, 600);
+
+  // Drawing control
+  const drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
+
+  const drawControl = new L.Control.Draw({
+    draw: {
+      polyline: { shapeOptions: { color: "#3388ff", weight: 5 } },
+      polygon: false,
+      rectangle: false,
+      circle: false,
+      marker: false,
+      circlemarker: false,
+    },
+    edit: { featureGroup: drawnItems },
+  });
+  map.addControl(drawControl);
+
+  let currentGeoJSON = null;
+
+  map.on(L.Draw.Event.CREATED, function (event) {
+    drawnItems.clearLayers(); // keep only one
+    const layer = event.layer;
+    drawnItems.addLayer(layer);
+    currentGeoJSON = layer.toGeoJSON();
+    console.log("Route drawn:", currentGeoJSON);
+  });
+
+  // Save route to backend
+  document.getElementById("saveForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!currentGeoJSON) {
+      alert("Please draw a route first!");
+      return;
+    }
+
+    const name = document.getElementById("routeName").value.trim();
+    const color = document.getElementById("routeColor").value;
+
+    try {
+      const response = await fetch("/admin/save_route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color, geojson: currentGeoJSON }),
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        alert("✅ " + result.message);
+        location.reload();
+      } else {
+        alert("❌ " + (result.message || "Failed to save route"));
+      }
+    } catch (err) {
+      console.error("Error saving route:", err);
+      alert("Error saving route. See console for details.");
+    }
+  });
+
+  // Show existing routes (passed from Flask as serializable dicts)
+  const existingRoutes = {{ routes|tojson }};
+  if (existingRoutes && Array.isArray(existingRoutes)) {
+    existingRoutes.forEach((r) => {
+      if (r.geojson) {
+        try {
+          const gj = JSON.parse(r.geojson);
+          const layer = L.geoJSON(gj, {
+            style: { color: r.color || "#3388ff", weight: 4 },
+          });
+          layer.addTo(map).bindPopup(`<b>${r.name}</b>`);
+        } catch (e) {
+          console.error("Bad GeoJSON for route", r.id, e);
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

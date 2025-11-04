@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between">
+  <h4>Routes</h4>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_route') }}">Create Route</a>
+</div>
+<hr/>
+<table class="table table-sm">
+  <thead><tr><th>#</th><th>Name</th><th>Code</th><th>Color</th></tr></thead>
+  <tbody>
+  {% for r in routes %}
+    <tr>
+      <td>{{ r.id }}</td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.route_code }}</td>
+      <td>{{ r.color }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">No routes yet</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
