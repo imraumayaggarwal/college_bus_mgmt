@@ -1,25 +1,170 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center">
-  <h4>Driver Dashboard</h4>
-  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">Logout</a>
-</div>
-<hr/>
-<p><strong>Driver:</strong> {{ driver.full_name }} | <strong>Bus:</strong> {{ bus.bus_number if bus else 'No bus assigned' }}</p>
+<style>
+  .dashboard-header {
+    animation: slideDown 0.5s ease;
+  }
 
-<div class="mb-3">
-  <a class="btn btn-primary" href="{{ url_for('driver_attendance') }}">Mark Attendance</a>
+  .info-card {
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .info-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .info-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .table-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .table {
+    margin: 0;
+  }
+
+  .table thead {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(124, 58, 237, 0.03));
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+
+  .table th {
+    font-weight: 700;
+    color: #1f2937;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.03);
+  }
+
+  .table td {
+    padding: 14px 16px;
+    color: #475569;
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 32px 16px;
+    color: #64748b;
+  }
+
+  .empty-icon {
+    font-size: 2rem;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+</style>
+
+<div class="dashboard-header">
+  <div class="page-head">
+    <div>
+      <h3 style="margin:0; font-weight: 800;">Driver Dashboard</h3>
+      <div class="small-muted"><i class="bi bi-bus-front me-1"></i>Your Bus & Assigned Students</div>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">
+      <i class="bi bi-box-arrow-right me-1"></i> Logout
+    </a>
+  </div>
 </div>
 
-<h5>Assigned Students</h5>
-<table class="table table-sm">
-  <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Phone</th></tr></thead>
-  <tbody>
-  {% for s in students %}
-    <tr><td>{{ s.id }}</td><td>{{ s.full_name }}</td><td>{{ s.roll_number }}</td><td>{{ s.phone }}</td></tr>
-  {% else %}
-    <tr><td colspan="4">No students assigned to this bus.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="row gy-3 mb-4">
+  <div class="col-md-6">
+    <div class="info-card">
+      <div class="info-label">Driver Name</div>
+      <div class="info-value">{{ driver.full_name if driver else 'N/A' }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="info-card">
+      <div class="info-label">Assigned Bus</div>
+      <div class="info-value" style="color: #2563eb;">
+        <i class="bi bi-bus-front me-2"></i>{{ bus.bus_number if bus else 'No bus assigned' }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="action-buttons">
+  <a class="btn btn-primary" href="{{ url_for('driver_attendance') }}">
+    <i class="bi bi-check2-square me-2"></i> Mark Attendance
+  </a>
+</div>
+
+<div class="table-card">
+  <div style="margin-bottom: 20px;">
+    <h5 style="font-weight: 700; margin: 0; color: #1f2937;">
+      <i class="bi bi-people-fill me-2" style="color: #2563eb;"></i>Assigned Students
+    </h5>
+    <p class="small-muted" style="margin: 4px 0 0 0;">List of students assigned to your bus</p>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student Name</th>
+          <th>Roll Number</th>
+          <th>Phone Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr>
+            <td>{{ s.id }}</td>
+            <td><strong>{{ s.full_name }}</strong></td>
+            <td>{{ s.roll_number if s.roll_number else '—' }}</td>
+            <td>{{ s.phone if s.phone else '—' }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4">
+              <div class="empty-message">
+                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                <p style="margin: 0;">No students assigned to this bus yet</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
