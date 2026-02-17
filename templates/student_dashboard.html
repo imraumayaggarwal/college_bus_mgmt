@@ -1,103 +1,304 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-  /* small page-level polish */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1f2937;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+
+  .stat-icon.blue { background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05)); color: #2563eb; }
+  .stat-icon.purple { background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.05)); color: #7c3aed; }
+  .stat-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); color: #10b981; }
+
+  .card-section {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .section-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1f2937;
+  }
+
+  .route-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+    color: #2563eb;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .map-wrapper {
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+    background: #f8fafc;
+  }
+
+  .attendance-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.03);
+  }
+
+  .table th {
+    font-weight: 700;
+    color: #1f2937;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(124, 58, 237, 0.03));
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+
+  .table td {
+    padding: 12px 16px;
+    color: #475569;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: #64748b;
+  }
+
+  .empty-icon {
+    font-size: 2.5rem;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+  }
+
+  .btn-group-horizontal {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
   .fade-in { animation: fadeInUp .28s ease both; }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
-  .panel-card { border-radius: 12px; border: 1px solid rgba(0,0,0,0.04); background: white; box-shadow: 0 6px 18px rgba(12,38,64,0.03); padding: 16px; }
-  .muted-small { color: #6c757d; font-size: 0.92rem; }
-  .attendance-table tbody tr:hover { background: rgba(13,110,253,0.03); }
-  .action-row { display:flex; gap:8px; align-items:center; }
-  .route-name { font-weight:700; font-size:1rem; }
-  .map-wrapper { height: 520px; border-radius:10px; overflow:hidden; border:1px solid rgba(0,0,0,0.06); }
-  .mini-contact { font-size:0.95rem; }
-  .notify-badge { font-size:0.75rem; padding:4px 8px; border-radius:999px; background:#f1f5ff; color:var(--brand); font-weight:600; }
 </style>
 
-<div class="container-fluid fade-in">
-  <div class="page-head mb-3">
+<div class="fade-in">
+  <div class="page-header">
     <div>
-      <h4 style="margin:0">Student Dashboard</h4>
-      <div class="small-muted">Overview of assigned route, attendance and notifications</div>
+      <h3 style="margin: 0; font-weight: 800;"><i class="bi bi-person-fill me-2"></i>Student Dashboard</h3>
+      <div class="small-muted"><i class="bi bi-info-circle me-1"></i>Overview of assigned route, attendance and notifications</div>
     </div>
-    <div class="action-row">
-      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('landing') }}"><i class="bi bi-house-door me-1"></i> Home</a>
-      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+    <div class="btn-group-horizontal">
+      <a class="btn btn-outline-secondary" href="{{ url_for('landing') }}"><i class="bi bi-house-door me-1"></i> Home</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
     </div>
   </div>
 
-  <div class="row gy-3">
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="stat-label">Student</div>
+            <div class="stat-value">{{ student.full_name }}</div>
+          </div>
+          <div class="stat-icon blue"><i class="bi bi-person-fill"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="stat-label">Roll Number</div>
+            <div class="stat-value">{{ student.roll_number or '—' }}</div>
+          </div>
+          <div class="stat-icon purple"><i class="bi bi-card-text"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="stat-label">Assigned Route</div>
+            <div class="stat-value">{% if route %}{{ route.name }}{% else %}—{% endif %}</div>
+          </div>
+          <div class="stat-icon green"><i class="bi bi-map"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="stat-label">Total Attendance</div>
+            <div class="stat-value">{{ attendance|length }}</div>
+          </div>
+          <div class="stat-icon blue"><i class="bi bi-check-circle"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
     <!-- MAP + route info -->
     <div class="col-lg-8">
-      <div class="panel-card">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <div class="route-name">
-              {% if route %}{{ route.name }}{% else %}No Route Assigned{% endif %}
-            </div>
-            <div class="muted-small">
-              {% if route %}
-                Route ID: {{ route.id }} • Color: <span style="display:inline-block;width:18px;height:18px;background:{{ route.color }};border-radius:4px;border:1px solid #ddd;vertical-align:middle;"></span>
-              {% else %}
-                Please contact admin to assign a route.
-              {% endif %}
-            </div>
+      <div class="card-section">
+        <div class="section-header">
+          <i class="bi bi-map-fill" style="color: #2563eb; font-size: 1.2rem;"></i>
+          <div class="section-title">Assigned Route</div>
+          {% if route %}
+            <span class="route-badge"><span style="display: inline-block; width: 12px; height: 12px; background: {{ route.color }}; border-radius: 3px; margin-right: 6px;"></span>{{ route.name }}</span>
+          {% else %}
+            <span class="route-badge">No Route Assigned</span>
+          {% endif %}
+        </div>
+
+        {% if route %}
+          <div class="map-wrapper mb-3" id="student-map-container">
+            <div id="student-map" style="height:100%;"></div>
           </div>
-
-          <div class="text-end">
-            <div class="muted-small">Student</div>
-            <div style="font-weight:700">{{ student.full_name }}</div>
-            <div class="muted-small">Roll: {{ student.roll_number or '—' }}</div>
+          <div class="small-muted"><i class="bi bi-info-circle me-1"></i>Map shows your assigned route. Zoom and pan as needed.</div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-map"></i></div>
+            <p style="margin: 0;">No route assigned yet</p>
+            <small class="text-muted">Please contact admin to assign a route.</small>
           </div>
-        </div>
-
-        <div class="map-wrapper mb-3" id="student-map-container">
-          <div id="student-map" style="height:100%;"></div>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="muted-small">Map shows assigned route. Zoom and pan as needed.</div>
-          <div><a class="btn btn-sm btn-outline-info" href="{{ url_for('admin_map') }}" role="button"><i class="bi bi-map me-1"></i> View all routes (admin)</a></div>
-        </div>
+        {% endif %}
       </div>
     </div>
 
     <!-- Attendance & Notifications -->
     <div class="col-lg-4">
-      <div class="panel-card mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>
-            <div class="small-muted">Attendance (recent)</div>
-            <div class="muted-small">Showing last 30 records</div>
-          </div>
-          <div class="action-row">
-            <button id="export-attendance" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i> Export CSV</button>
-          </div>
+      <div class="card-section">
+        <div class="section-header">
+          <i class="bi bi-calendar-check-fill" style="color: #10b981; font-size: 1.2rem;"></i>
+          <div class="section-title">Attendance</div>
+          <small class="ms-auto" style="color: #64748b;">Last 30 records</small>
         </div>
 
-        <div class="table-responsive" style="max-height:320px; overflow:auto;">
+        <div style="max-height: 350px; overflow-y: auto;">
           <table class="table table-sm attendance-table mb-0">
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Slot</th>
-                <th>Present</th>
+                <th style="text-align: center;">Status</th>
               </tr>
             </thead>
             <tbody>
               {% for a in attendance %}
                 <tr>
-                  <td>{{ a.attendance_date }}</td>
-                  <td>{{ (a.pickup_or_drop|capitalize) ~ ' ' ~ a.slot }}</td>
-                  <td>{{ 'Yes' if a.present else 'No' }}</td>
+                  <td><small>{{ a.attendance_date }}</small></td>
+                  <td><small>{{ (a.pickup_or_drop|capitalize) ~ ' ' ~ a.slot }}</small></td>
+                  <td style="text-align: center;">
+                    {% if a.present %}
+                      <span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                    {% else %}
+                      <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                    {% endif %}
+                  </td>
                 </tr>
               {% else %}
-                <tr><td colspan="3" class="text-center muted-small">No attendance records yet</td></tr>
+                <tr>
+                  <td colspan="3" class="text-center empty-state" style="padding: 20px;">
+                    <small>No attendance records yet</small>
+                  </td>
+                </tr>
               {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="section-header">
+          <i class="bi bi-bell-fill" style="color: #7c3aed; font-size: 1.2rem;"></i>
+          <div class="section-title">Notifications</div>
+        </div>
+
+        <div style="max-height: 250px; overflow-y: auto;">
+          {% for n in notifications %}
+            <div style="padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; gap: 10px;">
+              <div style="flex-shrink: 0; width: 4px; background: #2563eb; border-radius: 2px;"></div>
+              <div style="flex: 1;">
+                <div style="font-weight: 600; color: #1f2937; font-size: 0.9rem;">{{ n.title }}</div>
+                <div style="font-size: 0.85rem; color: #64748b; margin: 4px 0;">{{ n.message }}</div>
+                <small style="color: #94a3b8;">{{ n.created_at.strftime('%b %d, %Y') if n.created_at else '—' }}</small>
+              </div>
+            </div>
+          {% else %}
+            <div class="empty-state" style="padding: 24px;">
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+              <small>No notifications yet</small>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
             </tbody>
           </table>
         </div>

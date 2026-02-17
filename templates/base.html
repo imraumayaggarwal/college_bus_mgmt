@@ -43,6 +43,12 @@
         background:var(--bg); 
         color:#1f2937;
         letter-spacing: -0.3px;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin-top: 56px;
       }
 
       /* Sidebar */
@@ -51,9 +57,9 @@
         min-width: 260px;
         background: linear-gradient(180deg, #ffffff, #f8fafc);
         border-right: 1px solid rgba(0,0,0,0.06);
-        height: calc(100vh - 56px);
+        height: calc(100vh - 112px);
         position: fixed;
-        top:56px;
+        top: 112px;
         left:0;
         padding:16px;
         overflow:auto;
@@ -62,10 +68,12 @@
       
       /* Hide sidebar on public pages */
       .app-sidebar.hidden {
-        display: none;
+        display: none !important;
       }
       .app-main.full-width {
-        margin-left: 0;
+        margin-left: 0 !important;
+        width: 100%;
+        max-width: 100%;
       }
       .app-sidebar::-webkit-scrollbar { width: 6px; }
       .app-sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -75,6 +83,8 @@
         margin-left: 260px;
         padding: 28px;
         transition: margin 0.2s ease;
+        padding-top: 28px;
+        min-height: calc(100vh - 56px);
       }
       
       .app-main.full-width {
@@ -120,13 +130,17 @@
         background:#ffffff; 
         border-bottom:1px solid rgba(0,0,0,0.06); 
         position:fixed; 
-        top:0; left:0; right:0; 
+        top:0; 
+        left:0; 
+        right:0; 
         z-index:1050;
         display:flex; 
         align-items:center; 
         padding:0 20px; 
         gap:16px;
         box-shadow: var(--shadow);
+        width: 100%;
+        box-sizing: border-box;
       }
       
       .topbar .search {

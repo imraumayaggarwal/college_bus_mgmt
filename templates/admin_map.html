@@ -1,120 +1,620 @@
 {% extends 'base.html' %}
 {% block content %}
-<h4>🗺 Dehradun Route Mapper</h4>
-<p class="text-muted">Draw and save bus routes for your college buses.</p>
+<style>
+  .map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
 
-<!-- Map container -->
-<div id="map" style="height: 600px; width: 100%; border-radius: 10px; border: 2px solid #ccc;"></div>
+  #map {
+    height: 70vh;
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
 
-<!-- Controls -->
-<div class="mt-4 card p-3 shadow-sm">
-  <form id="saveForm">
-    <div class="row g-3 align-items-center">
-      <div class="col-md-4">
-        <label class="form-label fw-bold">Route Name</label>
-        <input type="text" id="routeName" class="form-control" placeholder="e.g. North Campus Route" required>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold">Route Color</label>
-        <input type="color" id="routeColor" class="form-control form-control-color" value="#3388ff">
-      </div>
-      <div class="col-md-3">
-        <button type="submit" class="btn btn-success mt-4">💾 Save Route</button>
-      </div>
-    </div>
-  </form>
+  .map-controls-panel {
+    position: fixed;
+    right: 20px;
+    top: 120px;
+    width: 320px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    z-index: 1000;
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .map-controls-panel.collapsed {
+    width: 56px;
+  }
+
+  .panel-header {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    padding: 16px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    min-height: 56px;
+    flex-wrap: wrap;
+  }
+
+  .map-controls-panel.collapsed .panel-header {
+    border-radius: 12px;
+  }
+
+  .panel-header:hover {
+    filter: brightness(1.1);
+  }
+
+  .panel-toggle-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .panel-toggle-btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  .panel-content {
+    padding: 16px;
+    max-height: 800px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    display: block;
+  }
+
+  .map-controls-panel.collapsed .panel-content {
+    display: none !important;
+  }
+
+  .control-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .control-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .control-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control, .form-control-color {
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-control:focus, .form-control-color:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .btn-group-vertical {
+    width: 100%;
+    gap: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .btn-sm {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    color: white;
+    font-weight: 600;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  }
+
+  .btn-outline-secondary {
+    border: 1px solid #e5e7eb;
+    color: #475569;
+    background: white;
+  }
+
+  .btn-outline-secondary:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  .route-stats {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+    margin-top: 8px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .stat-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .stat-label {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .stat-value {
+    color: #2563eb;
+    font-weight: 700;
+  }
+
+  .route-color-preview {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 6px;
+  }
+
+  .info-badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: #2563eb;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+
+  .leaflet-draw-toolbar a {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+
+  .leaflet-draw-toolbar.leaflet-draw-toolbar-notusable a {
+    opacity: 0.5;
+  }
+
+  @media (max-width: 768px) {
+    .map-controls-panel {
+      position: absolute;
+      right: 10px;
+      top: auto;
+      bottom: 10px;
+      width: 90vw;
+      max-width: 300px;
+    }
+
+    #map {
+      height: 50vh;
+    }
+  }
+
+  .save-btn-wrapper {
+    display: flex;
+    gap: 8px;
+  }
+
+  .toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+    max-width: 350px;
+  }
+
+  .toast-notification.success {
+    border-left: 4px solid #10b981;
+  }
+
+  .toast-notification.error {
+    border-left: 4px solid #ef4444;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+</style>
+
+<div class="map-header">
+  <div>
+    <h3 style="margin: 0; font-weight: 800;"><i class="bi bi-map me-2"></i>Route Mapper</h3>
+    <div class="small-muted"><i class="bi bi-pin-map me-1"></i>Design and manage bus routes with intelligent routing</div>
+  </div>
 </div>
 
-<!-- Leaflet CSS & Draw CSS from cdnjs (no integrity attributes) -->
+<!-- Map container -->
+<div id="map"></div>
+
+<!-- Modern Control Panel -->
+<div class="map-controls-panel" id="controlPanel">
+  <div class="panel-header" id="panelHeader">
+    <span style="display: flex; align-items: center; gap: 8px; flex: 1;">
+      <i class="bi bi-sliders"></i> Route Settings
+    </span>
+    <button class="panel-toggle-btn" id="togglePanelBtn">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+  </div>
+  
+  <div class="panel-content">
+    <!-- Route Name -->
+    <div class="control-section">
+      <label class="control-label">Route Name</label>
+      <input type="text" id="routeName" class="form-control" placeholder="e.g. North Route" required>
+    </div>
+
+    <!-- Route Color -->
+    <div class="control-section">
+      <label class="control-label">Route Color</label>
+      <input type="color" id="routeColor" class="form-control form-control-color" value="#2563eb">
+      <div class="route-color-preview" id="colorPreview" style="background: #2563eb;"></div>
+    </div>
+
+    <!-- Drawing Mode -->
+    <div class="control-section">
+      <label class="control-label">Drawing Mode</label>
+      <div class="btn-group-vertical">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="drawPolylineBtn">
+          <i class="bi bi-pencil-fill me-1"></i> Draw Route
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="addStopBtn">
+          <i class="bi bi-pin-fill me-1"></i> Add Bus Stop
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearBtn">
+          <i class="bi bi-trash me-1"></i> Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Route Stats -->
+    <div class="control-section">
+      <label class="control-label">Route Statistics</label>
+      <div class="route-stats">
+        <div class="stat-row">
+          <span class="stat-label">Waypoints:</span>
+          <span class="stat-value" id="waypointCount">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Distance:</span>
+          <span class="stat-value" id="distanceKm">0 km</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Est. Time:</span>
+          <span class="stat-value" id="estTime">0 min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="control-section">
+      <button type="button" class="btn btn-primary w-100" id="saveRouteBtn">
+        <i class="bi bi-check-circle me-1"></i> Save Route
+      </button>
+      <div class="info-badge"><i class="bi bi-info-circle me-1"></i> Draw a route first</div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet CSS & Draw CSS from cdnjs -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+<!-- Turf.js for route calculations -->
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6"></script>
 
-<!-- Leaflet JS then Leaflet Draw JS (order matters) -->
+<!-- Leaflet JS & Leaflet Draw JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // Diagnostic: confirm Leaflet loaded
-  if (typeof L === 'undefined') {
-    console.error("Leaflet (L) is not defined. Check script loading.");
-    return;
-  } else {
-    console.log("Leaflet loaded:", L.version || "version unknown");
+  // Panel toggle functionality
+  const controlPanel = document.getElementById("controlPanel");
+  const togglePanelBtn = document.getElementById("togglePanelBtn");
+  const panelHeader = document.getElementById("panelHeader");
+  let isPanelCollapsed = false;
+
+  function togglePanel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    isPanelCollapsed = !isPanelCollapsed;
+    controlPanel.classList.toggle("collapsed", isPanelCollapsed);
+    
+    const icon = togglePanelBtn.querySelector("i");
+    if (isPanelCollapsed) {
+      icon.classList.remove("bi-chevron-left");
+      icon.classList.add("bi-chevron-right");
+    } else {
+      icon.classList.remove("bi-chevron-right");
+      icon.classList.add("bi-chevron-left");
+    }
+
+    // Save preference
+    localStorage.setItem("mapPanelCollapsed", isPanelCollapsed);
   }
 
-  // Create map centered on Dehradun
+  // Single listener on button
+  togglePanelBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePanel(e);
+  });
+
+  // Load saved preference
+  const savedCollapsed = localStorage.getItem("mapPanelCollapsed") === "true";
+  if (savedCollapsed) {
+    isPanelCollapsed = true;
+    controlPanel.classList.add("collapsed");
+    const icon = togglePanelBtn.querySelector("i");
+    icon.classList.remove("bi-chevron-left");
+    icon.classList.add("bi-chevron-right");
+  }
+
+  // Verify Leaflet loaded
+  if (typeof L === 'undefined') {
+    console.error("Leaflet is not defined");
+    showNotification("Error loading map library", "error");
+    return;
+  }
+
+  // Initialize map
   const map = L.map("map").setView([30.3165, 78.0322], 13);
 
-  // Base OpenStreetMap layer (HTTPS)
+  // Base map layer
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(map);
 
-  // Fix rendering if container size was not available immediately
-  setTimeout(() => {
-    try { map.invalidateSize(); console.log("map.invalidateSize called"); } catch(e) {}
+  setTimeout(() => { 
+    try { map.invalidateSize(); } catch(e) {} 
   }, 600);
 
-  // Drawing control
-  const drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
+  // Feature groups for different layers
+  const routeLayer = new L.FeatureGroup();
+  const stopsLayer = new L.FeatureGroup();
+  map.addLayer(routeLayer);
+  map.addLayer(stopsLayer);
 
+  // Drawing control
   const drawControl = new L.Control.Draw({
     draw: {
-      polyline: { shapeOptions: { color: "#3388ff", weight: 5 } },
+      polyline: { 
+        shapeOptions: { color: "#2563eb", weight: 4, opacity: 0.8 } 
+      },
       polygon: false,
       rectangle: false,
       circle: false,
       marker: false,
       circlemarker: false,
     },
-    edit: { featureGroup: drawnItems },
+    edit: { featureGroup: routeLayer },
   });
   map.addControl(drawControl);
 
   let currentGeoJSON = null;
+  let routeWaypoints = [];
+  let addStopMode = false;
 
-  map.on(L.Draw.Event.CREATED, function (event) {
-    drawnItems.clearLayers(); // keep only one
-    const layer = event.layer;
-    drawnItems.addLayer(layer);
-    currentGeoJSON = layer.toGeoJSON();
-    console.log("Route drawn:", currentGeoJSON);
+  // Color picker sync
+  const routeColorInput = document.getElementById("routeColor");
+  const colorPreview = document.getElementById("colorPreview");
+  
+  routeColorInput.addEventListener("change", function() {
+    colorPreview.style.background = this.value;
+    updateRouteColor(this.value);
   });
 
-  // Save route to backend
-  document.getElementById("saveForm").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    if (!currentGeoJSON) {
-      alert("Please draw a route first!");
+  // Draw event listeners
+  map.on(L.Draw.Event.CREATED, function (event) {
+    routeLayer.clearLayers();
+    stopsLayer.clearLayers();
+    const layer = event.layer;
+    routeLayer.addLayer(layer);
+    currentGeoJSON = layer.toGeoJSON();
+    routeWaypoints = currentGeoJSON.geometry.coordinates;
+    updateStats();
+  });
+
+  map.on(L.Draw.Event.EDITED, function (event) {
+    event.layers.eachLayer(function (layer) {
+      currentGeoJSON = layer.toGeoJSON();
+      routeWaypoints = currentGeoJSON.geometry.coordinates;
+      updateStats();
+    });
+  });
+
+  // Add stop mode
+  document.getElementById("addStopBtn").addEventListener("click", function() {
+    addStopMode = !addStopMode;
+    this.classList.toggle("active");
+    if (addStopMode) {
+      this.style.background = "#2563eb";
+      this.style.color = "white";
+      map.dragging.disable();
+      showNotification("Click on map to add bus stops", "success");
+    } else {
+      this.style.background = "";
+      this.style.color = "";
+      map.dragging.enable();
+    }
+  });
+
+  map.on("click", function(e) {
+    if (!addStopMode) return;
+    
+    const marker = L.circleMarker(e.latlng, {
+      radius: 6,
+      fillColor: document.getElementById("routeColor").value,
+      color: "#fff",
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.8
+    })
+    .bindPopup(`<strong>Stop</strong><br>${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`)
+    .openPopup();
+    
+    stopsLayer.addLayer(marker);
+    routeWaypoints.push([e.latlng.lng, e.latlng.lat]);
+    updateStats();
+  });
+
+  // Clear button
+  document.getElementById("clearBtn").addEventListener("click", function() {
+    routeLayer.clearLayers();
+    stopsLayer.clearLayers();
+    currentGeoJSON = null;
+    routeWaypoints = [];
+    addStopMode = false;
+    document.getElementById("addStopBtn").style.background = "";
+    document.getElementById("addStopBtn").style.color = "";
+    updateStats();
+  });
+
+  // Update route color
+  function updateRouteColor(color) {
+    routeLayer.eachLayer(function(layer) {
+      if (layer.setStyle) {
+        layer.setStyle({ color: color });
+      }
+    });
+  }
+
+  // Calculate and update stats
+  function updateStats() {
+    const waypointCount = stopsLayer.getLayers().length + (routeWaypoints.length > 0 ? 1 : 0);
+    document.getElementById("waypointCount").textContent = waypointCount;
+
+    if (routeWaypoints.length >= 2) {
+      const line = turf.lineString(routeWaypoints);
+      const distance = turf.length(line, { units: "kilometers" });
+      const estTime = Math.round((distance / 40) * 60); // Assume 40 km/h avg speed
+
+      document.getElementById("distanceKm").textContent = distance.toFixed(2) + " km";
+      document.getElementById("estTime").textContent = estTime + " min";
+    } else {
+      document.getElementById("distanceKm").textContent = "0 km";
+      document.getElementById("estTime").textContent = "0 min";
+    }
+  }
+
+  // Save route
+  document.getElementById("saveRouteBtn").addEventListener("click", async function() {
+    if (!currentGeoJSON && routeWaypoints.length === 0) {
+      showNotification("Please draw a route first!", "error");
       return;
     }
 
     const name = document.getElementById("routeName").value.trim();
     const color = document.getElementById("routeColor").value;
 
+    if (!name) {
+      showNotification("Please enter a route name!", "error");
+      return;
+    }
+
+    if (!currentGeoJSON) {
+      showNotification("Please draw a route using the pen tool!", "error");
+      return;
+    }
+
     try {
+      this.disabled = true;
+      this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Saving...';
+
       const response = await fetch("/admin/save_route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, color, geojson: currentGeoJSON }),
       });
+
       const result = await response.json();
+
       if (result.status === "success") {
-        alert("✅ " + result.message);
-        location.reload();
+        showNotification("✅ Route saved successfully!", "success");
+        setTimeout(() => location.reload(), 1500);
       } else {
-        alert("❌ " + (result.message || "Failed to save route"));
+        showNotification("❌ " + (result.message || "Failed to save route"), "error");
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-check-circle me-1"></i> Save Route';
       }
     } catch (err) {
       console.error("Error saving route:", err);
-      alert("Error saving route. See console for details.");
+      showNotification("Error saving route. See console for details.", "error");
+      this.disabled = false;
+      this.innerHTML = '<i class="bi bi-check-circle me-1"></i> Save Route';
     }
   });
 
-  // Show existing routes (passed from Flask as serializable dicts)
+  // Toast notification system
+  function showNotification(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = "slideIn 0.3s ease reverse";
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Load existing routes
   const existingRoutes = {{ routes|tojson }};
   if (existingRoutes && Array.isArray(existingRoutes)) {
     existingRoutes.forEach((r) => {
@@ -122,9 +622,11 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           const gj = JSON.parse(r.geojson);
           const layer = L.geoJSON(gj, {
-            style: { color: r.color || "#3388ff", weight: 4 },
+            style: { color: r.color || "#2563eb", weight: 4, opacity: 0.7 },
           });
-          layer.addTo(map).bindPopup(`<b>${r.name}</b>`);
+          layer.addTo(map).bindPopup(
+            `<div style="font-weight:600; color:#1f2937;">🚌 ${r.name}</div><small style="color:#64748b;">Click to select</small>`
+          );
         } catch (e) {
           console.error("Bad GeoJSON for route", r.id, e);
         }

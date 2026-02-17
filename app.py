@@ -184,6 +184,21 @@ def create_app():
                 return redirect(url_for('admin_drivers'))
         return render_template('admin_create_driver.html')
 
+    @app.route('/admin/drivers/edit/<int:driver_id>', methods=['GET', 'POST'])
+    @login_required
+    def admin_edit_driver(driver_id):
+        if getattr(current_user, 'role', None) != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        driver = Driver.query.get_or_404(driver_id)
+        if request.method == 'POST':
+            driver.full_name = request.form['full_name'].strip()
+            driver.phone = request.form.get('phone', '').strip()
+            db.session.commit()
+            flash('Driver updated', 'success')
+            return redirect(url_for('admin_drivers'))
+        return render_template('admin_edit_driver.html', driver=driver)
+
     @app.route('/admin/parents')
     @login_required
     def admin_parents():
@@ -255,6 +270,24 @@ def create_app():
             flash('Bus created', 'success')
             return redirect(url_for('admin_buses'))
         return render_template('admin_create_bus.html', drivers=drivers)
+
+    @app.route('/admin/buses/edit/<int:bus_id>', methods=['GET', 'POST'])
+    @login_required
+    def admin_edit_bus(bus_id):
+        if getattr(current_user, 'role', None) != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        bus = Bus.query.get_or_404(bus_id)
+        drivers = Driver.query.all()
+        if request.method == 'POST':
+            bus.bus_number = request.form['bus_number'].strip()
+            bus.capacity = int(request.form.get('capacity', 0))
+            driver_id = request.form.get('driver_id')
+            bus.driver_id = int(driver_id) if driver_id else None
+            db.session.commit()
+            flash('Bus updated', 'success')
+            return redirect(url_for('admin_buses'))
+        return render_template('admin_edit_bus.html', bus=bus, drivers=drivers)
 
     # Admin Students (search-enabled + supply lists for modal)
     @app.route('/admin/students')
@@ -469,6 +502,15 @@ def create_app():
                 flash(f'Notification queued to {len(set(receivers))} users', 'success')
                 return redirect(url_for('admin_notifications'))
         return render_template('admin_create_notification.html')
+
+    @app.route('/admin/notifications/view/<int:notification_id>')
+    @login_required
+    def admin_view_notification(notification_id):
+        if getattr(current_user, 'role', None) != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        notification = Notification.query.get_or_404(notification_id)
+        return render_template('admin_view_notification.html', notification=notification)
 
     # -----------------------
     # Driver Dashboard & Attendance

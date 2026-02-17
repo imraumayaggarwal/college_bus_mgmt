@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-primary fw-bold mb-0">Notification Details</h4>
+                <a href="{{ url_for('admin_notifications') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-2"></i>Back
+                </a>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="notification-header p-3 rounded-3" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid #2563eb;">
+                        <div class="mb-2">
+                            <small class="text-muted">Title</small>
+                            <h5 class="text-primary fw-bold mb-0">{{ notification.title }}</h5>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Created: {{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else 'N/A' }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="message-container">
+                        <label class="form-label fw-500 text-dark">Message Content</label>
+                        <div class="p-3 rounded-2" style="background: #f9fafb; border: 1px solid #e5e7eb;">
+                            <p class="text-secondary mb-0" style="white-space: pre-wrap; line-height: 1.6;">{{ notification.message }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="info-section">
+                        <label class="form-label fw-500 text-dark mb-3">Distribution Information</label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-card p-3 rounded-2" style="background: #f0fdf4; border-left: 3px solid #10b981;">
+                                    <small class="text-muted d-block mb-1">Created By</small>
+                                    <p class="text-dark fw-500 mb-0">
+                                        {% if notification.created_by %}
+                                            {{ notification.creator.email if notification.creator else 'Admin' }}
+                                        {% else %}
+                                            System
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-card p-3 rounded-2" style="background: #fef3c7; border-left: 3px solid #f59e0b;">
+                                    <small class="text-muted d-block mb-1">Recipients</small>
+                                    <p class="text-dark fw-500 mb-0">
+                                        {% set count = notification.receivers.count() if notification.receivers else 0 %}
+                                        {{ count }} user{{ 's' if count != 1 else '' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if notification.receivers and notification.receivers.count() > 0 %}
+                <div class="col-12">
+                    <label class="form-label fw-500 text-dark mb-3">Recipients List</label>
+                    <div class="recipient-list p-3 rounded-2" style="background: #f9fafb; border: 1px solid #e5e7eb; max-height: 300px; overflow-y: auto;">
+                        <ul class="list-unstyled mb-0">
+                            {% for receiver in notification.receivers %}
+                                <li class="py-2 border-bottom" style="border-color: #e5e7eb;">
+                                    <small class="text-muted">{{ receiver.user.email if receiver.user else 'Unknown' }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="col-12 mt-4">
+                    <a href="{{ url_for('admin_notifications') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Return to Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        background: white;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+    }
+    
+    .notification-header {
+        border-radius: 12px;
+        border-left: 4px solid #2563eb;
+    }
+    
+    .form-label {
+        color: #374151;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    
+    .text-primary {
+        color: #2563eb !important;
+    }
+    
+    .text-dark {
+        color: #1f2937 !important;
+    }
+    
+    .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    .text-secondary {
+        color: #4b5563 !important;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border: none;
+        color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    }
+    
+    .btn-outline-secondary {
+        border: 1.5px solid #d1d5db;
+        color: #6b7280;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        border-color: #6b7280;
+        color: #374151;
+        background: transparent;
+    }
+    
+    .info-card {
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}

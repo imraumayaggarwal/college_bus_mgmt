@@ -1,18 +1,112 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between">
-  <h4>Notifications</h4>
-  <a class="btn btn-primary" href="{{ url_for('admin_create_notification') }}">Create & Broadcast</a>
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .table-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .table {
+    margin: 0;
+  }
+
+  .table thead {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(124, 58, 237, 0.03));
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+
+  .table th {
+    font-weight: 700;
+    color: #1f2937;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.03);
+  }
+
+  .table td {
+    padding: 14px 16px;
+    color: #475569;
+    vertical-align: middle;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 16px;
+    color: #64748b;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+  }
+</style>
+
+<div class="page-header">
+  <div>
+    <h3 style="margin: 0; font-weight: 800;">Notifications</h3>
+    <div class="small-muted"><i class="bi bi-bell me-1"></i>Send messages to parents and students</div>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_notification') }}"><i class="bi bi-plus me-1"></i> Create & Broadcast</a>
 </div>
-<hr/>
-<table class="table table-sm">
-<thead><tr><th>#</th><th>Title</th><th>Message</th><th>Created</th></tr></thead>
-<tbody>
-{% for n in notifications %}
-  <tr><td>{{ n.id }}</td><td>{{ n.title }}</td><td>{{ n.message }}</td><td>{{ n.created_at }}</td></tr>
-{% else %}
-  <tr><td colspan="4">No notifications</td></tr>
-{% endfor %}
-</tbody>
-</table>
+
+<div class="table-card">
+  <div style="overflow-x: auto;">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Message</th>
+          <th>Created</th>
+          <th style="text-align: center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in notifications %}
+        <tr>
+          <td>#{{ n.id }}</td>
+          <td><strong>{{ n.title }}</strong></td>
+          <td><span style="color: #64748b; max-width: 250px; display: block; overflow: hidden; text-overflow: ellipsis;">{{ n.message[:80] }}...</span></td>
+          <td><small style="color: #94a3b8;">{{ n.created_at.strftime('%b %d, %Y') if n.created_at else '—' }}</small></td>
+          <td style="text-align: center;">
+            <a href="{{ url_for('admin_view_notification', notification_id=n.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i> View</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+              <p style="margin: 0;">No notifications sent yet</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

@@ -1,23 +1,112 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between">
-  <h4>Drivers</h4>
-  <a class="btn btn-primary" href="{{ url_for('admin_create_driver') }}">Create Driver</a>
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .table-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .table {
+    margin: 0;
+  }
+
+  .table thead {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(124, 58, 237, 0.03));
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+  }
+
+  .table th {
+    font-weight: 700;
+    color: #1f2937;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.03);
+  }
+
+  .table td {
+    padding: 14px 16px;
+    color: #475569;
+    vertical-align: middle;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 16px;
+    color: #64748b;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+  }
+</style>
+
+<div class="page-header">
+  <div>
+    <h3 style="margin: 0; font-weight: 800;">Manage Drivers</h3>
+    <div class="small-muted"><i class="bi bi-person-badge me-1"></i>Create and manage driver accounts</div>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('admin_create_driver') }}"><i class="bi bi-person-plus me-1"></i> Create Driver</a>
 </div>
-<hr/>
-<table class="table table-sm">
-  <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
-  <tbody>
-  {% for d in drivers %}
-    <tr>
-      <td>{{ d.id }}</td>
-      <td>{{ d.full_name }}</td>
-      <td>{{ d.user.email if d.user else '—' }}</td>
-      <td>{{ d.phone or '' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="4">No drivers yet</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+
+<div class="table-card">
+  <div style="overflow-x: auto;">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th style="text-align: center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in drivers %}
+        <tr>
+          <td>#{{ d.id }}</td>
+          <td><strong>{{ d.full_name }}</strong></td>
+          <td>{{ d.user.email if d.user else '—' }}</td>
+          <td>{{ d.phone or '—' }}</td>
+          <td style="text-align: center;">
+            <a href="{{ url_for('admin_edit_driver', driver_id=d.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i> Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+              <p style="margin: 0;">No drivers created yet</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
