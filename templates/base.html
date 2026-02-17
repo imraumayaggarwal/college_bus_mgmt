@@ -59,6 +59,14 @@
         overflow:auto;
         box-shadow: 2px 0 8px rgba(0,0,0,0.04);
       }
+      
+      /* Hide sidebar on public pages */
+      .app-sidebar.hidden {
+        display: none;
+      }
+      .app-main.full-width {
+        margin-left: 0;
+      }
       .app-sidebar::-webkit-scrollbar { width: 6px; }
       .app-sidebar::-webkit-scrollbar-track { background: transparent; }
       .app-sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
@@ -67,6 +75,10 @@
         margin-left: 260px;
         padding: 28px;
         transition: margin 0.2s ease;
+      }
+      
+      .app-main.full-width {
+        margin-left: 0;
       }
       
       .sidebar-brand {
@@ -345,7 +357,7 @@
     </header>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="app-sidebar">
+    <aside id="sidebar" class="app-sidebar{% if not current_user.is_authenticated %} hidden{% endif %}">
       <div class="sidebar-brand">
         <div class="logo">CB</div>
         <div>
@@ -397,7 +409,7 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="app-main">
+    <main class="app-main{% if not current_user.is_authenticated %} full-width{% endif %}">
       <div class="container-fluid">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}

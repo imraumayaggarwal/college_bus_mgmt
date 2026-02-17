@@ -143,7 +143,13 @@ def create_app():
         if getattr(current_user, 'role', None) != 'admin':
             flash('Access denied', 'danger')
             return redirect(url_for('landing'))
-        return render_template('admin_dashboard.html')
+        total_students = Student.query.count()
+        total_buses = Bus.query.count()
+        total_routes = Route.query.count()
+        return render_template('admin_dashboard.html', 
+                             total_students=total_students,
+                             total_buses=total_buses,
+                             total_routes=total_routes)
 
     @app.route('/admin/drivers')
     @login_required

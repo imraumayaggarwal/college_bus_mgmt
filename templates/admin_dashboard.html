@@ -147,7 +147,7 @@
     <div class="stat-card">
       <i class="bi bi-people-fill" style="font-size: 1.8rem; color: #2563eb; opacity: 0.8;"></i>
       <div class="stat-label">Total Students</div>
-      <div class="stat-value">{{ Student.query.count() if false else '—' }}</div>
+      <div class="stat-value">{% if total_students %}{{ total_students }}{% else %}0{% endif %}</div>
       <div class="stat-description">Manage student assignments and details</div>
     </div>
   </div>
@@ -156,7 +156,7 @@
     <div class="stat-card">
       <i class="bi bi-bus-front-fill" style="font-size: 1.8rem; color: #7c3aed; opacity: 0.8;"></i>
       <div class="stat-label">Total Buses</div>
-      <div class="stat-value">{{ Bus.query.count() if false else '—' }}</div>
+      <div class="stat-value">{% if total_buses %}{{ total_buses }}{% else %}0{% endif %}</div>
       <div class="stat-description">Assign drivers & manage capacity</div>
     </div>
   </div>
@@ -165,7 +165,7 @@
     <div class="stat-card">
       <i class="bi bi-map-fill" style="font-size: 1.8rem; color: #10b981; opacity: 0.8;"></i>
       <div class="stat-label">Active Routes</div>
-      <div class="stat-value">{{ Route.query.count() if false else '—' }}</div>
+      <div class="stat-value">{% if total_routes %}{{ total_routes }}{% else %}0{% endif %}</div>
       <div class="stat-description">Draw routes and optimize paths</div>
     </div>
   </div>
