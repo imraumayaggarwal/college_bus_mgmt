@@ -1,69 +1,223 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="page-head">
-  <div>
-    <h3 style="margin:0">Admin Dashboard</h3>
-    <div class="small-muted">Overview & quick actions</div>
-  </div>
-  <div>
-    <a href="{{ url_for('admin_create_student') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i> Create Student</a>
-    <a href="{{ url_for('admin_map') }}" class="btn btn-outline-secondary btn-sm ms-2"><i class="bi bi-map me-1"></i> Manage Routes</a>
+<style>
+  .dashboard-header {
+    animation: slideDown 0.5s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 12px 0;
+  }
+
+  .stat-label {
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .stat-description {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .section-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+  }
+
+  .section-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border-color: rgba(37, 99, 235, 0.1);
+  }
+
+  .section-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-icon {
+    color: #2563eb;
+    font-size: 1.25rem;
+  }
+
+  .list-group-item {
+    background: transparent;
+    border-color: rgba(0,0,0,0.06);
+    padding: 12px 0;
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.03), rgba(124, 58, 237, 0.03));
+    border-radius: 8px;
+    border: 1px dashed rgba(37, 99, 235, 0.2);
+  }
+
+  .empty-state-icon {
+    font-size: 2rem;
+    color: #2563eb;
+    margin-bottom: 8px;
+  }
+</style>
+
+<div class="dashboard-header">
+  <div class="page-head">
+    <div>
+      <h3 style="margin:0; font-weight: 800;">Dashboard</h3>
+      <div class="small-muted"><i class="bi bi-speedometer2 me-1"></i>System Overview & Management</div>
+    </div>
+    <div class="action-buttons">
+      <a href="{{ url_for('admin_create_student') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus me-1"></i> Create Student
+      </a>
+      <a href="{{ url_for('admin_map') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-map me-1"></i> Manage Routes
+      </a>
+    </div>
   </div>
 </div>
 
-<div class="row gy-3">
+<!-- Stats Grid -->
+<div class="row gy-4 mb-4">
   <div class="col-lg-3 col-md-6">
-    <div class="card-ghost">
-      <div class="small-muted">Total students</div>
-      <div class="stat">{{ (Student.query.count() if false else '—') }}</div>
-      <div class="small-muted mt-2">Manage student assignments and contact details</div>
+    <div class="stat-card">
+      <i class="bi bi-people-fill" style="font-size: 1.8rem; color: #2563eb; opacity: 0.8;"></i>
+      <div class="stat-label">Total Students</div>
+      <div class="stat-value">{{ Student.query.count() if false else '—' }}</div>
+      <div class="stat-description">Manage student assignments and details</div>
     </div>
   </div>
 
   <div class="col-lg-3 col-md-6">
-    <div class="card-ghost">
-      <div class="small-muted">Total buses</div>
-      <div class="stat">{{ (Bus.query.count() if false else '—') }}</div>
-      <div class="small-muted mt-2">Assign drivers & capacity</div>
+    <div class="stat-card">
+      <i class="bi bi-bus-front-fill" style="font-size: 1.8rem; color: #7c3aed; opacity: 0.8;"></i>
+      <div class="stat-label">Total Buses</div>
+      <div class="stat-value">{{ Bus.query.count() if false else '—' }}</div>
+      <div class="stat-description">Assign drivers & manage capacity</div>
     </div>
   </div>
 
   <div class="col-lg-3 col-md-6">
-    <div class="card-ghost">
-      <div class="small-muted">Active routes</div>
-      <div class="stat">{{ (Route.query.count() if false else '—') }}</div>
-      <div class="small-muted mt-2">Draw routes on map and save</div>
+    <div class="stat-card">
+      <i class="bi bi-map-fill" style="font-size: 1.8rem; color: #10b981; opacity: 0.8;"></i>
+      <div class="stat-label">Active Routes</div>
+      <div class="stat-value">{{ Route.query.count() if false else '—' }}</div>
+      <div class="stat-description">Draw routes and optimize paths</div>
     </div>
   </div>
 
   <div class="col-lg-3 col-md-6">
-    <div class="card-ghost">
-      <div class="small-muted">Unread notifications</div>
-      <div class="stat">0</div>
-      <div class="small-muted mt-2">Broadcast messages to parents & students</div>
+    <div class="stat-card">
+      <i class="bi bi-bell-fill" style="font-size: 1.8rem; color: #f59e0b; opacity: 0.8;"></i>
+      <div class="stat-label">Notifications</div>
+      <div class="stat-value">0</div>
+      <div class="stat-description">Unread system messages</div>
     </div>
   </div>
 </div>
 
-<div class="row mt-3">
+<!-- Content Section -->
+<div class="row gy-4">
   <div class="col-lg-8">
-    <div class="card-ghost">
-      <h5>Recent Activity</h5>
-      <p class="small-muted">Shows last admin actions — student created, route added, attendance snapshots, etc.</p>
-      <!-- placeholder list -->
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">No recent actions — demo mode.</li>
-      </ul>
+    <div class="section-card">
+      <div class="section-title">
+        <i class="bi bi-clock-history section-icon"></i> Recent Activity
+      </div>
+      <div class="list-group list-group-flush">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+          <p class="text-muted mb-0">No recent activities yet</p>
+          <small class="text-muted">Activities will appear here as you make changes</small>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="col-lg-4">
-    <div class="card-ghost">
-      <h6>Quick Links</h6>
+    <div class="section-card">
+      <div class="section-title">
+        <i class="bi bi-star-fill section-icon"></i> Quick Actions
+      </div>
       <div class="d-grid gap-2">
-        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_students') }}"><i class="bi bi-people-fill me-1"></i> Manage Students</a>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_buses') }}"><i class="bi bi-bus-front-fill me-1"></i> Manage Buses</a>
-        <a class="btn btn-outline-info btn-sm" href="{{ url_for('admin_map') }}"><i class="bi bi-map me-1"></i> Route Map</a>
+        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_students') }}">
+          <i class="bi bi-people-fill me-1"></i> Manage Students
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_buses') }}">
+          <i class="bi bi-bus-front-fill me-1"></i> Manage Buses
+        </a>
+        <a class="btn btn-outline-info btn-sm" href="{{ url_for('admin_map') }}">
+          <i class="bi bi-map me-1"></i> Route Map
+        </a>
+        <a class="btn btn-outline-warning btn-sm" href="{{ url_for('admin_drivers') }}">
+          <i class="bi bi-person-badge me-1"></i> Manage Drivers
+        </a>
+        <a class="btn btn-outline-success btn-sm" href="{{ url_for('admin_notifications') }}">
+          <i class="bi bi-bell me-1"></i> Notifications
+        </a>
       </div>
     </div>
   </div>
