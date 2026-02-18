@@ -702,6 +702,230 @@ def create_app():
                                attendance=attendance,
                                notifications=notifications)
 
+    # -----------------------
+    # BILLING & PAYMENTS
+    # -----------------------
+    
+    # Import billing models
+    from models import Subscription, Invoice, Payment, BillingCycle
+
+    @app.route('/admin/subscriptions')
+    @login_required
+    def admin_subscriptions():
+        if current_user.role != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        subscriptions = Subscription.query.all()
+        return render_template('admin_subscriptions.html', subscriptions=subscriptions)
+
+    @app.route('/admin/subscriptions/create', methods=['GET', 'POST'])
+    @login_required
+    def admin_create_subscription():
+        if current_user.role != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        if request.method == 'POST':
+            name = request.form.get('name', '').strip()
+            price = float(request.form.get('price', 0))
+            duration_days = int(request.form.get('duration_days', 30))
+            description = request.form.get('description', '').strip()
+            
+            if not name or price <= 0:
+                flash('Please provide valid subscription details', 'danger')
+                return render_template('admin_create_subscription.html')
+            
+            subscription = Subscription(
+                name=name,
+                price=price,
+                duration_days=duration_days,
+                description=description
+            )
+            db.session.add(subscription)
+            db.session.commit()
+            
+            flash(f'Subscription "{name}" created successfully', 'success')
+            return redirect(url_for('admin_subscriptions'))
+        
+        return render_template('admin_create_subscription.html')
+
+    @app.route('/admin/invoices')
+    @login_required
+    def admin_invoices():
+        if current_user.role != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        invoices = Invoice.query.order_by(Invoice.issued_date.desc()).all()
+        return render_template('admin_invoices.html', invoices=invoices)
+
+    @app.route('/admin/invoices/create', methods=['GET', 'POST'])
+    @login_required
+    def admin_create_invoice():
+        if current_user.role != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        if request.method == 'POST':
+            parent_id = int(request.form.get('parent_id', 0))
+            student_id = int(request.form.get('student_id', 0))
+            subscription_id = int(request.form.get('subscription_id', 0))
+            due_date_str = request.form.get('due_date', '')
+            notes = request.form.get('notes', '').strip()
+            
+            if not parent_id or not student_id or not subscription_id:
+                flash('Please select parent, student, and subscription', 'danger')
+                return redirect(url_for('admin_create_invoice'))
+            
+            subscription = Subscription.query.get(subscription_id)
+            if not subscription:
+                flash('Subscription not found', 'danger')
+                return redirect(url_for('admin_create_invoice'))
+            
+            from datetime import datetime as dt
+            due_date = dt.strptime(due_date_str, '%Y-%m-%d')
+            
+            # Generate invoice number
+            import secrets
+            invoice_number = f"INV-{dt.now().strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+            
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                parent_id=parent_id,
+                student_id=student_id,
+                subscription_id=subscription_id,
+                amount=subscription.price,
+                due_date=due_date,
+                notes=notes
+            )
+            
+            db.session.add(invoice)
+            db.session.commit()
+            
+            flash(f'Invoice {invoice_number} created successfully', 'success')
+            return redirect(url_for('admin_invoices'))
+        
+        parents = Parent.query.all()
+        students = Student.query.all()
+        subscriptions = Subscription.query.filter_by(is_active=True).all()
+        
+        return render_template('admin_create_invoice.html',
+                             parents=parents,
+                             students=students,
+                             subscriptions=subscriptions)
+
+    @app.route('/admin/invoices/<int:invoice_id>')
+    @login_required
+    def admin_view_invoice(invoice_id):
+        if current_user.role != 'admin':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        invoice = Invoice.query.get_or_404(invoice_id)
+        payments = Payment.query.filter_by(invoice_id=invoice_id).all()
+        
+        return render_template('admin_view_invoice.html', invoice=invoice, payments=payments)
+
+    @app.route('/admin/invoices/<int:invoice_id>/mark-paid', methods=['POST'])
+    @login_required
+    def admin_mark_invoice_paid(invoice_id):
+        if current_user.role != 'admin':
+            return jsonify({'error': 'Access denied'}), 403
+        
+        invoice = Invoice.query.get_or_404(invoice_id)
+        invoice.status = 'paid'
+        invoice.paid_date = datetime.utcnow()
+        db.session.commit()
+        
+        flash('Invoice marked as paid', 'success')
+        return redirect(url_for('admin_view_invoice', invoice_id=invoice_id))
+
+    @app.route('/parent/invoices')
+    @login_required
+    def parent_invoices():
+        if current_user.role != 'parent':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        parent = Parent.query.filter_by(user_id=current_user.id).first()
+        if not parent:
+            flash('Parent profile not found', 'danger')
+            return redirect(url_for('landing'))
+        
+        invoices = Invoice.query.filter_by(parent_id=parent.id).order_by(Invoice.issued_date.desc()).all()
+        
+        total_pending = sum(inv.amount for inv in invoices if inv.status == 'pending')
+        total_paid = sum(inv.amount for inv in invoices if inv.status == 'paid')
+        
+        return render_template('parent_invoices.html',
+                             invoices=invoices,
+                             total_pending=total_pending,
+                             total_paid=total_paid)
+
+    @app.route('/parent/invoices/<int:invoice_id>')
+    @login_required
+    def parent_view_invoice(invoice_id):
+        if current_user.role != 'parent':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        invoice = Invoice.query.get_or_404(invoice_id)
+        parent = Parent.query.filter_by(user_id=current_user.id).first()
+        
+        if invoice.parent_id != parent.id:
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        payments = Payment.query.filter_by(invoice_id=invoice_id).all()
+        
+        return render_template('parent_view_invoice.html', invoice=invoice, payments=payments)
+
+    @app.route('/parent/invoices/<int:invoice_id>/pay', methods=['GET', 'POST'])
+    @login_required
+    def parent_pay_invoice(invoice_id):
+        if current_user.role != 'parent':
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        invoice = Invoice.query.get_or_404(invoice_id)
+        parent = Parent.query.filter_by(user_id=current_user.id).first()
+        
+        if invoice.parent_id != parent.id:
+            flash('Access denied', 'danger')
+            return redirect(url_for('landing'))
+        
+        if request.method == 'POST':
+            payment_method = request.form.get('payment_method', 'credit_card')
+            amount = float(request.form.get('amount', invoice.amount))
+            transaction_id = request.form.get('transaction_id', '').strip()
+            
+            if amount <= 0 or amount > invoice.amount:
+                flash('Invalid payment amount', 'danger')
+                return render_template('parent_pay_invoice.html', invoice=invoice)
+            
+            payment = Payment(
+                invoice_id=invoice_id,
+                payment_method=payment_method,
+                amount=amount,
+                transaction_id=transaction_id or None,
+                status='completed'
+            )
+            
+            db.session.add(payment)
+            
+            # Check if fully paid
+            total_paid = sum(p.amount for p in invoice.payments) + amount
+            if total_paid >= invoice.amount:
+                invoice.status = 'paid'
+                invoice.paid_date = datetime.utcnow()
+            
+            db.session.commit()
+            
+            flash('Payment recorded successfully', 'success')
+            return redirect(url_for('parent_view_invoice', invoice_id=invoice_id))
+        
+        return render_template('parent_pay_invoice.html', invoice=invoice)
+
     return app
 
 if __name__ == '__main__':

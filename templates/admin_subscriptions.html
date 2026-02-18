@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Subscriptions - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">💳 Subscription Plans</h1>
+                <a href="{{ url_for('admin_create_subscription') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Subscription
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Subscriptions Grid -->
+            <div class="row">
+                {% if subscriptions %}
+                    {% for sub in subscriptions %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm hover-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">{{ sub.name }}</h5>
+                                    {% if sub.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="price-display mb-3">
+                                    <h3 class="text-primary mb-0">₹{{ "%.2f"|format(sub.price) }}</h3>
+                                    <small class="text-muted">for {{ sub.duration_days }} days</small>
+                                </div>
+
+                                {% if sub.description %}
+                                    <p class="text-muted small mb-3">{{ sub.description }}</p>
+                                {% endif %}
+
+                                <div class="subscription-stats mb-3">
+                                    <div class="stat-item">
+                                        <small class="text-muted">Active Subscriptions</small>
+                                        <div class="h6 mb-0">{{ sub.billing_cycles|length }}</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <small class="text-muted">Invoices Generated</small>
+                                        <div class="h6 mb-0">{{ sub.invoices|length }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="btn-group w-100" role="group">
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center py-5">
+                            <i class="fas fa-info-circle fa-2x mb-3"></i>
+                            <p>No subscription plans yet. <a href="{{ url_for('admin_create_subscription') }}">Create one</a></p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+    
+    .price-display {
+        border-left: 4px solid #2563EB;
+        padding-left: 15px;
+    }
+    
+    .subscription-stats {
+        display: flex;
+        gap: 15px;
+        padding: 10px 0;
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .stat-item {
+        flex: 1;
+    }
+</style>
+{% endblock %}

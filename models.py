@@ -101,3 +101,67 @@ class Contact(db.Model):
     relation = db.Column(db.String(100))
     phone = db.Column(db.String(50))
     email = db.Column(db.String(255))
+
+# ========================
+# BILLING & PAYMENT MODELS
+# ========================
+
+class Subscription(db.Model):
+    __tablename__ = 'subscriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)  # 'Monthly', 'Quarterly', 'Yearly'
+    price = db.Column(db.Float, nullable=False)  # Price in currency units
+    duration_days = db.Column(db.Integer, nullable=False)  # Number of days
+    description = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Invoice(db.Model):
+    __tablename__ = 'invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_number = db.Column(db.String(100), unique=True, nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('parents.id', ondelete='CASCADE'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscriptions.id'), nullable=False)
+    
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'paid', 'overdue', 'cancelled'
+    issued_date = db.Column(db.DateTime, default=datetime.utcnow)
+    due_date = db.Column(db.DateTime, nullable=False)
+    paid_date = db.Column(db.DateTime)
+    
+    description = db.Column(db.Text)
+    notes = db.Column(db.Text)
+    
+    parent = db.relationship('Parent', backref='invoices', foreign_keys=[parent_id])
+    student = db.relationship('Student', backref='invoices', foreign_keys=[student_id])
+    subscription = db.relationship('Subscription', backref='invoices', foreign_keys=[subscription_id])
+
+class Payment(db.Model):
+    __tablename__ = 'payments'
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id', ondelete='CASCADE'), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)  # 'credit_card', 'debit_card', 'bank_transfer', 'upi', 'cash'
+    amount = db.Column(db.Float, nullable=False)
+    transaction_id = db.Column(db.String(255), unique=True)
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='completed')  # 'pending', 'completed', 'failed', 'refunded'
+    
+    notes = db.Column(db.Text)
+    
+    invoice = db.relationship('Invoice', backref='payments', foreign_keys=[invoice_id])
+
+class BillingCycle(db.Model):
+    __tablename__ = 'billing_cycles'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscriptions.id'), nullable=False)
+    
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    student = db.relationship('Student', backref='billing_cycles', foreign_keys=[student_id])
+    subscription = db.relationship('Subscription', backref='billing_cycles', foreign_keys=[subscription_id])
+

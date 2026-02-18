@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Create Subscription - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">💳 Create New Subscription Plan</h4>
+                </div>
+
+                <div class="card-body p-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Plan Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Monthly Plan" required>
+                            <small class="form-text text-muted">Name of the subscription plan</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Price (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" name="price" step="0.01" placeholder="1000.00" required>
+                                    <small class="form-text text-muted">Price in Indian Rupees</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="duration_days" class="form-label">Duration (Days) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="duration_days" name="duration_days" value="30" placeholder="30" required>
+                                    <small class="form-text text-muted">Number of days</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter subscription details..."></textarea>
+                            <small class="form-text text-muted">Brief description of what's included</small>
+                        </div>
+
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <h6 class="mb-2">📋 Quick Presets</h6>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPreset('Monthly Plan', 1000, 30)">
+                                    Monthly<br><small>₹1000</small>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPreset('Quarterly Plan', 2700, 90)">
+                                    Quarterly<br><small>₹2700</small>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setPreset('Yearly Plan', 10000, 365)">
+                                    Yearly<br><small>₹10000</small>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Create Subscription Plan
+                            </button>
+                            <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-secondary">
+                                Back to Subscriptions
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setPreset(name, price, days) {
+    document.getElementById('name').value = name;
+    document.getElementById('price').value = price;
+    document.getElementById('duration_days').value = days;
+    
+    // Show toast
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-info alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
+    toast.innerHTML = `Preset loaded: ${name}<button class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock %}

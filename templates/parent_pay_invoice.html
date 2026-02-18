@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Pay Invoice - Parent Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white p-4">
+                    <h4 class="mb-0">💳 Pay Invoice</h4>
+                    <small>{{ invoice.invoice_number }}</small>
+                </div>
+
+                <div class="card-body p-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Invoice Summary -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">Invoice Details</h6>
+                                    <p class="mb-1">
+                                        <strong>Invoice #:</strong> {{ invoice.invoice_number }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Student:</strong> {{ invoice.student.full_name }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Plan:</strong> {{ invoice.subscription.name }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <h6 class="text-muted mb-2">Amount to Pay</h6>
+                                    <h3 class="text-success mb-0">₹{{ "%.2f"|format(invoice.amount) }}</h3>
+                                    <small class="text-muted">Due: {{ invoice.due_date.strftime('%d %b %Y') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Select Payment Method <span class="text-danger">*</span></label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="credit_card" value="credit_card" checked>
+                                        <label class="form-check-label" for="credit_card">
+                                            <i class="fas fa-credit-card"></i> Credit Card
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="debit_card" value="debit_card">
+                                        <label class="form-check-label" for="debit_card">
+                                            <i class="fas fa-credit-card"></i> Debit Card
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="upi" value="upi">
+                                        <label class="form-check-label" for="upi">
+                                            <i class="fas fa-mobile-alt"></i> UPI
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                                        <label class="form-check-label" for="bank_transfer">
+                                            <i class="fas fa-university"></i> Bank Transfer
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="cash" value="cash">
+                                        <label class="form-check-label" for="cash">
+                                            <i class="fas fa-money-bill"></i> Cash at Office
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Amount to Pay (₹) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="amount" name="amount" 
+                                           value="{{ invoice.amount }}" step="0.01" placeholder="0.00" required>
+                                    <small class="form-text text-muted">Full amount: ₹{{ "%.2f"|format(invoice.amount) }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="transaction_id" class="form-label">Transaction ID (Optional)</label>
+                                    <input type="text" class="form-control" id="transaction_id" name="transaction_id" 
+                                           placeholder="e.g., UTR / Reference Number">
+                                    <small class="form-text text-muted">For bank transfers or UPI</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms & Conditions -->
+                        <div class="alert alert-info mb-4">
+                            <small>
+                                <i class="fas fa-info-circle"></i>
+                                By proceeding with payment, you confirm that you have reviewed the invoice details above. 
+                                A payment receipt will be sent to your email.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Payment
+                            </button>
+                            <a href="{{ url_for('parent_view_invoice', invoice_id=invoice.id) }}" class="btn btn-outline-secondary">
+                                Back to Invoice
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Payment Information -->
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Bank Transfer Details</h6>
+                            <p class="small mb-2">
+                                <strong>Bank Name:</strong> Your College Bank
+                            </p>
+                            <p class="small mb-2">
+                                <strong>Account Number:</strong> XXXX XXXX XXXX 1234
+                            </p>
+                            <p class="small mb-0">
+                                <strong>IFSC Code:</strong> BANK0000001
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Need Help?</h6>
+                            <p class="small mb-2">
+                                <i class="fas fa-envelope"></i> <strong>support@college.edu</strong>
+                            </p>
+                            <p class="small mb-0">
+                                <i class="fas fa-phone"></i> <strong>+91 98765 43210</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validate amount on change
+document.getElementById('amount').addEventListener('change', function() {
+    const max = {{ invoice.amount }};
+    const value = parseFloat(this.value);
+    
+    if (value > max) {
+        this.classList.add('is-invalid');
+        this.value = max;
+    } else {
+        this.classList.remove('is-invalid');
+    }
+});
+</script>
+{% endblock %}
