@@ -285,7 +285,7 @@
               <div style="flex: 1;">
                 <div style="font-weight: 600; color: #1f2937; font-size: 0.9rem;">{{ n.title }}</div>
                 <div style="font-size: 0.85rem; color: #64748b; margin: 4px 0;">{{ n.message }}</div>
-                <small style="color: #94a3b8;">{{ n.created_at.strftime('%b %d, %Y') if n.created_at else '—' }}</small>
+                <small style="color: #94a3b8;">{{ n.created_at if n.created_at else '—' }}</small>
               </div>
             </div>
           {% else %}

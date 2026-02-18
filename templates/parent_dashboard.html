@@ -286,7 +286,7 @@
               <div style="flex: 1;">
                 <div class="notification-title">{{ n.title }}</div>
                 <div class="notification-message">{{ n.message }}</div>
-                <div class="notification-time">{{ n.created_at.strftime('%b %d, %Y') if n.created_at else '—' }}</div>
+                <div class="notification-time">{{ n.created_at if n.created_at else '—' }}</div>
               </div>
             </div>
           {% else %}
