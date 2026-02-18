@@ -74,7 +74,7 @@
 
 <div class="table-card">
   <div style="overflow-x: auto;">
-    <table class="table table-hover">
+    <table class="table table-hover" id="drivers-table">
       <thead>
         <tr>
           <th>#</th>
@@ -109,4 +109,20 @@
     </table>
   </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/table-utils.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const table = new DataTable('#drivers-table', { itemsPerPage: 10 });
+    
+    // Show success toast if driver was created/edited
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('created') === '1') {
+      showToast('Driver created successfully!', 'success');
+    }
+    if (urlParams.get('updated') === '1') {
+      showToast('Driver updated successfully!', 'success');
+    }
+  });
+</script>
 {% endblock %}

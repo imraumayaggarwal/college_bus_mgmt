@@ -1,0 +1,88 @@
+<!-- Global Toast Notification Container -->
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<!-- Global Confirmation Dialog -->
+<div id="confirmationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 32px; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h4 style="margin: 0 0 12px 0; color: #1f2937; font-size: 1.25rem;">Confirm Action</h4>
+        <p id="confirmationMessage" style="margin: 0 0 24px 0; color: #6b7280; line-height: 1.6;"></p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancelBtn" onclick="cancelConfirmation()" style="padding: 10px 20px; border: 1.5px solid #d1d5db; background: white; color: #6b7280; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" onclick="proceedConfirmation()" style="padding: 10px 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let confirmationCallback = null;
+
+    function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        const colors = {
+            success: { bg: '#d1fae5', border: '#10b981', text: '#065f46' },
+            error: { bg: '#fee2e2', border: '#ef4444', text: '#7f1d1d' },
+            warning: { bg: '#fef3c7', border: '#f59e0b', text: '#78350f' },
+            info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e3a8a' }
+        };
+        
+        const color = colors[type] || colors.info;
+        
+        toast.style.cssText = `
+            background: ${color.bg};
+            border-left: 4px solid ${color.border};
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            min-width: 300px;
+            color: ${color.text};
+            font-weight: 500;
+        `;
+        
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function showConfirmation(message, callback) {
+        confirmationCallback = callback;
+        document.getElementById('confirmationMessage').textContent = message;
+        document.getElementById('confirmationModal').style.display = 'flex';
+    }
+
+    function proceedConfirmation() {
+        document.getElementById('confirmationModal').style.display = 'none';
+        if (confirmationCallback) {
+            confirmationCallback();
+        }
+    }
+
+    function cancelConfirmation() {
+        document.getElementById('confirmationModal').style.display = 'none';
+        confirmationCallback = null;
+    }
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
