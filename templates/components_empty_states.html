@@ -1,0 +1,206 @@
+<!-- Empty State Component Styles and Templates -->
+<style>
+    .empty-state-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 24px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        border: 1px dashed #e2e8f0;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 8px 0;
+    }
+
+    .empty-state-text {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin: 0 0 24px 0;
+        max-width: 400px;
+    }
+
+    .empty-state-action {
+        display: inline-block;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .empty-state-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    /* Skeleton loading animation */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .skeleton-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .skeleton-cell {
+        height: 40px;
+        border-radius: 6px;
+        background: #f0f0f0;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+
+<script>
+    // Empty state utilities
+    function createEmptyState(icon, title, text, actionText = null, actionUrl = null) {
+        const container = document.createElement('div');
+        container.className = 'empty-state-container';
+        
+        let html = `
+            <div class="empty-state-icon">${icon}</div>
+            <h4 class="empty-state-title">${title}</h4>
+            <p class="empty-state-text">${text}</p>
+        `;
+        
+        if (actionText && actionUrl) {
+            html += `<a href="${actionUrl}" class="empty-state-action">${actionText}</a>`;
+        }
+        
+        container.innerHTML = html;
+        return container;
+    }
+
+    // Show loading skeleton
+    function showSkeletonLoader(tableId, rows = 5) {
+        const table = document.querySelector(tableId);
+        if (!table) return;
+        
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        for (let i = 0; i < rows; i++) {
+            const row = document.createElement('tr');
+            const cols = table.querySelectorAll('thead th').length;
+            
+            for (let j = 0; j < cols; j++) {
+                const cell = document.createElement('td');
+                cell.className = 'skeleton';
+                cell.style.height = '40px';
+                cell.style.borderRadius = '6px';
+                row.appendChild(cell);
+            }
+            
+            tbody.appendChild(row);
+        }
+    }
+
+    // Hide loading skeleton
+    function hideSkeletonLoader(tableId) {
+        const table = document.querySelector(tableId);
+        if (table) {
+            table.querySelectorAll('tbody .skeleton').forEach(el => {
+                el.parentElement.remove();
+            });
+        }
+    }
+
+    // Generate random color for avatars
+    function getColorForInitials(text) {
+        const colors = ['#2563eb', '#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    // Create user avatar
+    function createUserAvatar(name) {
+        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+        const color = getColorForInitials(name);
+        
+        const avatar = document.createElement('div');
+        avatar.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: ${color};
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+        `;
+        avatar.textContent = initials;
+        
+        return avatar;
+    }
+
+    // Format date
+    function formatDate(date) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }).format(date);
+    }
+
+    // Format time
+    function formatTime(date) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+        return new Intl.DateTimeFormat('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+</script>

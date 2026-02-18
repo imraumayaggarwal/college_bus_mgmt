@@ -1,0 +1,202 @@
+<!-- Accessibility & Performance Enhancements -->
+
+<script>
+    // Add keyboard navigation support
+    document.addEventListener('DOMContentLoaded', () => {
+        // Trap focus in modals
+        const modal = document.getElementById('confirmationModal');
+        if (modal) {
+            modal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cancelConfirmation();
+                }
+            });
+        }
+
+        // Add ARIA labels to buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            if (!btn.getAttribute('aria-label')) {
+                btn.setAttribute('aria-label', btn.textContent.trim());
+            }
+        });
+
+        // Add ARIA live regions for toasts
+        if (!document.getElementById('toastContainer').getAttribute('aria-live')) {
+            document.getElementById('toastContainer').setAttribute('aria-live', 'polite');
+            document.getElementById('toastContainer').setAttribute('aria-atomic', 'true');
+        }
+    });
+
+    // Performance: Lazy load images
+    if ('IntersectionObserver' in window) {
+        const images = document.querySelectorAll('img[data-src]');
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        images.forEach(img => imageObserver.observe(img));
+    }
+
+    // Debounce search input
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Performance: Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href !== '#' && document.querySelector(href)) {
+                e.preventDefault();
+                document.querySelector(href).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + S: Focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const searchInput = document.querySelector('[data-searchable]');
+            if (searchInput) searchInput.focus();
+        }
+
+        // Escape: Close modal
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('confirmationModal');
+            if (modal && modal.style.display !== 'none') {
+                cancelConfirmation();
+            }
+        }
+    });
+
+    // Accessibility: Announce page changes
+    function announcePageChange(message) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'assertive');
+        announcement.setAttribute('class', 'sr-only');
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
+        
+        setTimeout(() => announcement.remove(), 1000);
+    }
+
+    // Performance monitoring
+    if ('PerformanceObserver' in window) {
+        try {
+            const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    if (entry.duration > 3000) {
+                        console.warn(`Slow operation detected: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
+                    }
+                }
+            });
+            observer.observe({ entryTypes: ['measure', 'navigation'] });
+        } catch (e) {
+            // PerformanceObserver not supported
+        }
+    }
+</script>
+
+<style>
+    /* Screen reader only content */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    /* Improve focus visibility */
+    button:focus,
+    a:focus,
+    input:focus {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: more) {
+        body {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .btn {
+            border-width: 2px;
+        }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Dark mode preference */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: #111827;
+            color: #f3f4f6;
+        }
+
+        .table-card,
+        .card {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .table th,
+        .table td {
+            color: #e5e7eb;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        .btn,
+        .page-header,
+        .sidebar,
+        .topbar {
+            display: none !important;
+        }
+
+        body {
+            background: white;
+        }
+
+        .table-card {
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+    }
+</style>
