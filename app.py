@@ -804,13 +804,42 @@ def create_app():
             return redirect(url_for('admin_invoices'))
         
         parents = Parent.query.all()
+        # Include all students for the dropdown
         students = Student.query.all()
         subscriptions = Subscription.query.filter_by(is_active=True).all()
+        
+        if not subscriptions:
+            flash('No active subscriptions found. Please create one first.', 'warning')
         
         return render_template('admin_create_invoice.html',
                              parents=parents,
                              students=students,
                              subscriptions=subscriptions)
+
+    @app.route('/api/parent/<int:parent_id>/students')
+    @login_required
+    def get_parent_students(parent_id):
+        """API endpoint to get students linked to a parent"""
+        if current_user.role != 'admin':
+            return jsonify({'error': 'Access denied'}), 403
+        
+        parent = Parent.query.get(parent_id)
+        if not parent:
+            return jsonify({'error': 'Parent not found'}), 404
+        
+        # Get students linked to this parent's user
+        students = Student.query.filter_by(parent_user_id=parent.user_id).all()
+        
+        return jsonify({
+            'students': [
+                {
+                    'id': student.id,
+                    'name': student.full_name,
+                    'roll': student.roll_number
+                }
+                for student in students
+            ]
+        })
 
     @app.route('/admin/invoices/<int:invoice_id>')
     @login_required

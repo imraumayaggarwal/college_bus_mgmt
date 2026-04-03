@@ -41,13 +41,9 @@
                                 <div class="mb-3">
                                     <label for="student_id" class="form-label">Select Student <span class="text-danger">*</span></label>
                                     <select class="form-select" id="student_id" name="student_id" required>
-                                        <option value="">-- Choose Student --</option>
-                                        {% for student in students %}
-                                            <option value="{{ student.id }}" data-parent="{{ student.parent_user_id }}">
-                                                {{ student.full_name }} ({{ student.roll_number }})
-                                            </option>
-                                        {% endfor %}
+                                        <option value="">-- Choose Parent First --</option>
                                     </select>
+                                    <small class="form-text text-muted">Select a parent above to see their students</small>
                                 </div>
                             </div>
                         </div>
@@ -116,12 +112,37 @@ function loadStudents() {
     const parentId = document.getElementById('parent_id').value;
     const studentSelect = document.getElementById('student_id');
     
-    // Filter students
-    Array.from(studentSelect.options).forEach(option => {
-        if (option.value === '') return;
-        const studentParentId = option.getAttribute('data-parent');
-        option.style.display = studentParentId == parentId ? 'block' : 'none';
-    });
+    if (!parentId) {
+        // Reset if no parent selected
+        studentSelect.innerHTML = '<option value="">-- Choose Student --</option>';
+        return;
+    }
+    
+    // Fetch students for this parent via API
+    fetch(`/api/parent/${parentId}/students`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load students');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.students || data.students.length === 0) {
+                studentSelect.innerHTML = '<option value="">-- No students linked to this parent --</option>';
+                return;
+            }
+            
+            // Build options
+            let html = '<option value="">-- Choose Student --</option>';
+            data.students.forEach(student => {
+                html += `<option value="${student.id}">${student.name} (${student.roll})</option>`;
+            });
+            studentSelect.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            studentSelect.innerHTML = '<option value="">-- Error loading students --</option>';
+        });
 }
 
 function updateAmount() {
