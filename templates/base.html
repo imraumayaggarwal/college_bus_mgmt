@@ -392,6 +392,9 @@
           <a class="nav-link {% if 'admin_buses' in request.endpoint %}active{% endif %}" href="{{ url_for('admin_buses') }}"><i class="bi bi-bus-front-fill"></i> Buses</a>
           <a class="nav-link {% if 'admin_routes' in request.endpoint or 'admin_map' in request.endpoint %}active{% endif %}" href="{{ url_for('admin_map') }}"><i class="bi bi-map"></i> Routes / Map</a>
           <a class="nav-link {% if 'admin_notifications' in request.endpoint %}active{% endif %}" href="{{ url_for('admin_notifications') }}"><i class="bi bi-bell-fill"></i> Notifications</a>
+          <hr style="margin: 12px 0; border-color: rgba(0,0,0,0.06);">
+          <a class="nav-link {% if 'admin_subscriptions' in request.endpoint %}active{% endif %}" href="{{ url_for('admin_subscriptions') }}"><i class="bi bi-credit-card"></i> Subscriptions</a>
+          <a class="nav-link {% if 'admin_invoices' in request.endpoint %}active{% endif %}" href="{{ url_for('admin_invoices') }}"><i class="bi bi-receipt"></i> Invoices</a>
         {% endif %}
 
         {% if current_user.is_authenticated and current_user.role == 'driver' %}
@@ -405,6 +408,7 @@
 
         {% if current_user.is_authenticated and current_user.role == 'parent' %}
           <a class="nav-link" href="{{ url_for('parent_dashboard') }}"><i class="bi bi-people"></i> Parent dashboard</a>
+          <a class="nav-link {% if 'parent_invoices' in request.endpoint %}active{% endif %}" href="{{ url_for('parent_invoices') }}"><i class="bi bi-receipt"></i> My Invoices</a>
         {% endif %}
       </nav>
 
