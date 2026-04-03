@@ -755,7 +755,7 @@ def create_app():
             return redirect(url_for('landing'))
         
         invoices = Invoice.query.order_by(Invoice.issued_date.desc()).all()
-        return render_template('admin_invoices.html', invoices=invoices, now=datetime.now())
+        return render_template('admin_invoices.html', invoices=invoices, current_date=datetime.now())
 
     @app.route('/admin/invoices/create', methods=['GET', 'POST'])
     @login_required
@@ -888,7 +888,7 @@ def create_app():
                              invoices=invoices,
                              total_pending=total_pending,
                              total_paid=total_paid,
-                             now=datetime.now())
+                             current_date=datetime.now())
 
     @app.route('/parent/invoices/<int:invoice_id>')
     @login_required

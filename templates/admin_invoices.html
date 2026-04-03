@@ -87,7 +87,7 @@
                                     <td><strong>₹{{ "%.2f"|format(invoice.amount) }}</strong></td>
                                     <td>
                                         {{ invoice.due_date.strftime('%d %b %Y') }}
-                                        {% if invoice.due_date < now() and invoice.status == 'pending' %}
+                                        {% if invoice.due_date < current_date and invoice.status == 'pending' %}
                                             <span class="badge bg-danger">Overdue</span>
                                         {% endif %}
                                     </td>
