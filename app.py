@@ -928,6 +928,12 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    with app.app_context():
+        try:
+            db.create_all()
+            print('✓ Database tables initialized')
+        except Exception as e:
+            print(f'Database init error: {e}')
     app.run(debug=True)
     
 
