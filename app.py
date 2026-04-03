@@ -12,7 +12,8 @@ from sqlalchemy import or_
 # models.py must define: db, User, Driver, Parent, Bus, Student, Route, Notification, NotificationReceiver, Attendance
 from models import (
     db, User, Driver, Parent, Bus, Student, Route,
-    Notification, NotificationReceiver, Attendance
+    Notification, NotificationReceiver, Attendance,
+    Subscription, Invoice, Payment, BillingCycle
 )
 
 load_dotenv()
@@ -705,9 +706,6 @@ def create_app():
     # -----------------------
     # BILLING & PAYMENTS
     # -----------------------
-    
-    # Import billing models
-    from models import Subscription, Invoice, Payment, BillingCycle
 
     @app.route('/admin/subscriptions')
     @login_required
